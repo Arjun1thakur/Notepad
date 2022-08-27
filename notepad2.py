@@ -1,0 +1,169 @@
+#importing required packages and libraries
+from tkinter import *
+from tkinter import ttk
+from tkinter.ttk import *
+from datetime import datetime
+from tkinter  import messagebox, filedialog, simpledialog
+from tkinter import filedialog,simpledialog
+from tkinter.scrolledtext import ScrolledText
+import os
+#the root widget
+root = Tk()
+root.title('GOD Notepad')
+
+
+#creating scrollable notepad window
+notepad = ScrolledText(root, width = 90, height = 40)
+fileName = ''
+
+#defining functions for commands
+def cmdNew():
+    global fileName
+    if len(notepad.get('1.0', END+'-1c'))>0:
+        if messagebox.askyesno("Notepad", "Do you want to save changes?"):
+            cmdSave()
+        else:
+            notepad.delete(0.0, END)
+    root.title("Notepad")
+# create new tab
+def cmdNewWin():
+    pass
+
+def cmdOpen():
+    fd = filedialog.askopenfile(parent = root, mode = 'r')
+    t = fd.read()     #t is the text read through filedialog
+    notepad.delete(0.0, END)
+    notepad.insert(0.0, t)
+    
+def cmdSave():     #file menu Save option
+    fd = filedialog.asksaveasfile(mode = 'w', defaultextension = '.txt')
+    if fd!= None:
+        data = notepad.get('1.0', END)
+    try:
+        fd.write(data)
+    except:
+        messagebox.showerror(title="Error", message = "Not able to save file!")
+     
+def cmdSaveAs():     #file menu Save As option
+    fd = filedialog.asksaveasfile(mode='w', defaultextension = '.txt')
+    t = notepad.get(0.0, END)     #t stands for the text gotten from notepad
+    try:
+        fd.write(t.rstrip())
+    except:
+        messagebox.showerror(title="Error", message = "Not able to save file!")
+
+def cmdExit():     #file menu Exit option
+    if messagebox.askyesno("Notepad", "Are you sure you want to exit?"):
+        root.destroy()
+
+def cmdCut():     #edit menu Cut option
+    notepad.event_generate("<<Cut>>")
+
+def cmdCopy():     #edit menu Copy option
+    notepad.event_generate("<<Copy>>")
+
+def cmdPaste():     #edit menu Paste option
+    notepad.event_generate("<<Paste>>")
+
+def cmdClear():     #edit menu Clear option
+    notepad.event_generate("<<Clear>>")
+       
+def cmdFind():     #edit menu Find option
+    notepad.tag_remove("Found",'1.0', END)
+    find = simpledialog.askstring("Find", "Find what:")
+    if find:
+        idx = '1.0'     #idx stands for index
+    while 1:
+        idx = notepad.search(find, idx, nocase = 1, stopindex = END)
+        if not idx:
+            break
+        lastidx = '%s+%dc' %(idx, len(find))
+        notepad.tag_add('Found', idx, lastidx)
+        idx = lastidx
+    notepad.tag_config('Found', foreground = 'white', background = 'blue')
+    notepad.bind("<1>", click)
+
+def click(event):     #handling click event
+    notepad.tag_config('Found',background='white',foreground='black')
+
+def cmdSelectAll():     #edit menu Select All option
+    notepad.event_generate("<<SelectAll>>")
+    
+def cmdTimeDate():     #edit menu Time/Date option
+    now = datetime.now()
+    # dd/mm/YY H:M:S
+    dtString = now.strftime("%d/%m/%Y %H:%M:%S")
+    label = messagebox.showinfo("Time/Date", dtString)
+
+def cmdAbout():     #help menu About option
+    label = messagebox.showinfo("About Notepad", "Notepad by - Arjun Singh")
+
+#notepad menu items
+notepadMenu = Menu(root)
+root.configure(menu=notepadMenu)
+
+#file menu
+fileMenu = Menu(notepadMenu, tearoff = False)
+notepadMenu.add_cascade(label='File', menu = fileMenu)
+
+# File menu Opttions
+fileMenu.add_command(label='New', command = cmdNew)
+fileMenu.add_command(label='New Window', command = cmdNewWin)
+fileMenu.add_command(label='Open...', command = cmdOpen)
+fileMenu.add_command(label='Save', command = cmdSave)
+fileMenu.add_command(label='Save As...', command = cmdSaveAs)
+fileMenu.add_separator()
+fileMenu.add_command(label="Page Setup...",command=cmdNew)
+fileMenu.add_command(label="Print",command=cmdNew)
+fileMenu.add_separator()
+fileMenu.add_command(label='Exit', command = cmdExit)
+
+#edit menu
+editMenu = Menu(notepadMenu, tearoff = False)
+notepadMenu.add_cascade(label='Edit', menu = editMenu)
+
+#Edit menu Options
+editMenu.add_command(label="Undo",command=0)
+editMenu.add_separator()
+editMenu.add_command(label='Cut', command = cmdCut)
+editMenu.add_command(label='Copy', command = cmdCopy)
+editMenu.add_command(label='Paste', command = cmdPaste)
+editMenu.add_command(label='Delete', command = cmdClear)
+editMenu.add_separator()
+editMenu.add_command(label="Search with google",command=0)
+editMenu.add_command(label='Find...', command = cmdFind)
+editMenu.add_command(label="Find Next",command=0)
+editMenu.add_command(label="Find Previous",command=0)
+editMenu.add_command(label="Replace..",command=0)
+editMenu.add_command(label="Go To...",command=0)
+editMenu.add_separator()
+editMenu.add_command(label='Select All', command = cmdSelectAll)
+editMenu.add_command(label='Time/Date', command = cmdTimeDate)
+
+# Format Options
+FormatMenu = Menu(notepadMenu,tearoff=0)
+FormatMenu.add_command(label="Word Wrap",command=0)
+FormatMenu.add_command(label="Font",command=0)
+notepadMenu.add_cascade(label="Format",menu=FormatMenu)
+
+# View options
+ViewMenu = Menu(notepadMenu,tearoff=0)
+ViewMenu.add_command(label="Zoom",command=0)
+ViewMenu.add_command(label="Status Bar",command=0)
+notepadMenu.add_cascade(label="View",menu=ViewMenu)
+
+#Setting menu
+SettingMenu = Menu(notepadMenu, tearoff = False)
+notepadMenu.add_cascade(label='Setting', menu = SettingMenu)
+
+SettingMenu.add_command(label='Mode',command=0)
+SettingMenu.add_command(label='Color',command=0)
+
+#help menu
+helpMenu = Menu(notepadMenu, tearoff = False)
+notepadMenu.add_cascade(label='Help', menu = helpMenu)
+
+#adding options in help menu
+helpMenu.add_command(label='About Notepad', command = cmdAbout)
+notepad.pack(expand=True,fill=BOTH)
+root.mainloop()
